@@ -385,6 +385,8 @@ h1 {
   gap: 0.75rem;
   align-items: stretch;
   align-content: flex-start;
+  padding-bottom: 4.5rem;
+  scroll-padding-bottom: 4.5rem;
 }
 
 .book-card,

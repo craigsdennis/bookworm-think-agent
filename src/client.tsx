@@ -420,6 +420,8 @@ function BookWormDesk({
   const [input, setInput] = useState("");
   const lastToolSyncSignature = useRef("");
   const initializedReaderRef = useRef<string | null>(null);
+  const messageListRef = useRef<HTMLDivElement | null>(null);
+  const shouldStickToBottomRef = useRef(true);
 
   const agent = useAgent<BookWormState>({
     agent: "BookWormAgent",
@@ -458,6 +460,15 @@ function BookWormDesk({
     }
   }, [agent]);
 
+  const scrollMessagesToBottom = useCallback(() => {
+    const list = messageListRef.current;
+    if (!list) {
+      return;
+    }
+
+    list.scrollTop = list.scrollHeight;
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("bookworm:last-name", identity.displayName);
 
@@ -483,6 +494,18 @@ function BookWormDesk({
       void refreshPanels();
     }
   }, [messages, isStreaming, refreshPanels]);
+
+  useEffect(() => {
+    if (!shouldStickToBottomRef.current) {
+      return;
+    }
+
+    const animationFrame = requestAnimationFrame(() => {
+      scrollMessagesToBottom();
+    });
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [messages, isStreaming, scrollMessagesToBottom]);
 
   useEffect(() => {
     const reversedMessages = [...messages].reverse();
@@ -567,6 +590,7 @@ function BookWormDesk({
   const send = useCallback(() => {
     const trimmed = input.trim();
     if (!trimmed) return;
+    shouldStickToBottomRef.current = true;
     setInput("");
     clearError();
     sendMessage({
@@ -591,6 +615,16 @@ function BookWormDesk({
     },
     [canSend, send]
   );
+
+  const handleMessageListScroll = useCallback(() => {
+    const list = messageListRef.current;
+    if (!list) {
+      return;
+    }
+
+    const distanceFromBottom = list.scrollHeight - list.scrollTop - list.clientHeight;
+    shouldStickToBottomRef.current = distanceFromBottom < 48;
+  }, []);
 
   return (
     <main className="app-shell">
@@ -767,7 +801,7 @@ function BookWormDesk({
             ))}
           </div>
 
-          <div className="message-list">
+          <div className="message-list" ref={messageListRef} onScroll={handleMessageListScroll}>
             {messages.length === 0 ? (
               <div className="empty-chat">
                 <p>BookWorm is ready.</p>
