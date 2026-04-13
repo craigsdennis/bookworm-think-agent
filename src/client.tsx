@@ -38,6 +38,9 @@ type ReaderIdentity = {
 
 type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
+const THINK_DOCS_URL = "https://developers.cloudflare.com/agents/";
+const REPO_URL = "https://github.com/craigsdennis/bookworm-think-agent";
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -174,6 +177,25 @@ const SUGGESTIONS = [
   "Remind me tomorrow at 8pm to read for thirty minutes.",
   "Build me a notes extension that stores quote fragments in a writable context block."
 ];
+
+function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <p>
+        Built with <span aria-hidden="true">🧡</span> using{" "}
+        <a href={THINK_DOCS_URL} target="_blank" rel="noreferrer">
+          Agents SDK - Think
+        </a>
+      </p>
+      <p>
+        <span aria-hidden="true">👀</span>{" "}
+        <a href={REPO_URL} target="_blank" rel="noreferrer">
+          the code
+        </a>
+      </p>
+    </footer>
+  );
+}
 
 function HomePage({
   defaultName,
@@ -780,10 +802,15 @@ function App() {
 
   const defaultName = useMemo(() => localStorage.getItem("bookworm:last-name") ?? "", []);
 
-  return activeIdentity ? (
-    <BookWormDesk identity={activeIdentity} onSwitchReader={() => setActiveIdentity(null)} />
-  ) : (
-    <HomePage defaultName={defaultName} onStart={setActiveIdentity} />
+  return (
+    <>
+      {activeIdentity ? (
+        <BookWormDesk identity={activeIdentity} onSwitchReader={() => setActiveIdentity(null)} />
+      ) : (
+        <HomePage defaultName={defaultName} onStart={setActiveIdentity} />
+      )}
+      <SiteFooter />
+    </>
   );
 }
 
